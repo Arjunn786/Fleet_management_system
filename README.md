@@ -74,38 +74,41 @@ cd user-app && npm run dev
 cd admin-portal && npm run dev
 ```
 
-### 4. Populate Test Data
+### 4. Populate Database with Test Data
 
-```bash
+````bash
 cd backend
 
-# Create test users and dummy data
-node scripts/createTestUsers.js
+# Populate comprehensive Indian data (users, vehicles, bookings, trips)
 node scripts/populateDummyData.js
-node scripts/createDriverAssignments.js
-```
 
 ### 5. Access Applications
 
-- **🌐 User Application**: http://localhost:3001 (Customer/Driver/Owner portal)
-- **🔧 Admin Portal**: http://localhost:3002 (Admin dashboard)
+- **🌐 User Application**: http://localhost:3000 (Customer/Driver/Owner portal)
+- **🔧 Admin Portal**: http://localhost:3001(Admin dashboard)
 - **🔗 Backend API**: http://localhost:5000 (REST API)
 
 > **Note**: Ports may automatically adjust if default ports are in use. Check terminal output for actual URLs.
-> | Role | Email | Password | Portal |
-> | ------------ | ------------------ | ----------- | ------------------- |
-> | **Admin** | admin@fleet.com | password123 | Admin Portal (3001) |
-> | **Customer** | customer@fleet.com | password123 | User App (3000) |
-> | **Driver** | driver@fleet.com | password123 | User App (3000) |
-> | **Owner** | owner@fleet.com | password123 | User App (3000) |
 
-### Additional Test Users
+### 6. Login Credentials
 
-- alice@example.com / password123 (Customer)
-- bob@example.com / password123 (Driver)
-- carol@example.com / password123 (Customer)
-- david@example.com / password123 (Driver)
-- emma@example.com / password123 (Customer)
+| Role         | Email              | Password    | Dashboard         | Access              |
+| ------------ | ------------------ | ----------- | ----------------- | ------------------- |
+| **Admin**    | admin@fleet.com    | password123 | Admin Portal      | System management   |
+| **Owner 1**  | owner1@fleet.com   | password123 | User App (Owner)  | Fleet management    |
+| **Owner 2**  | owner2@fleet.com   | password123 | User App (Owner)  | Fleet management    |
+| **Driver 1** | driver1@fleet.com  | password123 | User App (Driver) | Trip management     |
+| **Driver 2** | driver2@fleet.com  | password123 | User App (Driver) | Trip management     |
+| **Driver 3** | driver3@fleet.com  | password123 | User App (Driver) | Trip management     |
+| **Driver 4** | driver4@fleet.com  | password123 | User App (Driver) | Trip management     |
+| **Customer 1** | customer1@fleet.com | password123 | User App (Customer) | Vehicle booking   |
+| **Customer 2** | customer2@fleet.com | password123 | User App (Customer) | Vehicle booking   |
+| **Customer 3** | customer3@fleet.com | password123 | User App (Customer) | Vehicle booking   |
+| **Customer 4** | customer4@fleet.com | password123 | User App (Customer) | Vehicle booking   |
+| **Customer 5** | customer5@fleet.com | password123 | User App (Customer) | Vehicle booking   |
+| **Customer 6** | customer6@fleet.com | password123 | User App (Customer) | Vehicle booking   |
+
+> **Quick Test**: Use `customer1@fleet.com` to test booking flow, `driver1@fleet.com` for trip management, and `owner1@fleet.com` for fleet operations.
 
 ---
 
@@ -114,44 +117,50 @@ node scripts/createDriverAssignments.js
 ### 1. Admin Dashboard Testing
 
 ```bash
-# Go to http://localhost:3002
+# Go to http://localhost:5173 (Admin Portal)
 1. Login with admin@fleet.com / password123
-2. View dashboard analytics
-3. Manage users, vehicles, and bookings
-4. Monitor system activity
-```
+2. View comprehensive dashboard with Indian fleet data
+3. Manage users across multiple Indian cities
+4. Monitor vehicles with Indian registration numbers
+5. Track bookings and trips across India
+6. View system-wide analytics and reports
+````
 
 ### 2. Customer Workflow Testing
 
 ```bash
-# Go to http://localhost:3001
-1. Login with customer@fleet.com / password123
-2. Browse available vehicles
-3. Create a new booking
-4. Track booking status
-5. View trip history
+# Go to http://localhost:3000 (User App)
+1. Login with customer1@fleet.com / password123
+2. Browse available vehicles (Maruti, Hyundai, Toyota, etc.)
+3. Create booking from Mumbai Airport to Gateway of India
+4. Track booking status (pending → confirmed → in-progress → completed)
+5. View trip history with Indian locations
+6. Check past bookings across different cities
 ```
 
 ### 3. Driver Workflow Testing
 
 ```bash
-# Go to http://localhost:3001
-1. Login with driver@fleet.com / password123
-2. View assigned trips
-3. Accept/start trips
-4. Update trip status
-5. Complete trips
+# Go to http://localhost:3000 (User App)
+1. Login with driver1@fleet.com / password123
+2. View assigned vehicles and trips
+3. Check scheduled trips (Mumbai, Bangalore, Delhi routes)
+4. Start and track in-progress trips
+5. Complete trips with distance and fuel data
+6. View earnings and trip history
 ```
 
 ### 4. Owner Workflow Testing
 
 ```bash
-# Go to http://localhost:3001
-1. Login with owner@fleet.com / password123
-2. Manage vehicle fleet
-3. Approve/reject bookings
-4. Assign drivers to bookings
-5. View revenue analytics
+# Go to http://localhost:3000 (User App)
+1. Login with owner1@fleet.com / password123
+2. Manage fleet of 8 vehicles across Indian cities
+3. View all bookings for owned vehicles
+4. Assign drivers to vehicles
+5. Approve/manage driver assignments
+6. View revenue analytics and fleet performance
+7. Monitor vehicle status and maintenance
 ```
 
 ### 5. API Testing
@@ -160,15 +169,197 @@ node scripts/createDriverAssignments.js
 # Test authentication
 curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"customer@fleet.com","password":"password123"}'
+  -d '{"email":"customer1@fleet.com","password":"password123"}'
 
 # Test protected route (replace TOKEN with received token)
 curl -H "Authorization: Bearer TOKEN" http://localhost:5000/api/vehicles
+
+# Test booking creation
+curl -X POST http://localhost:5000/api/bookings \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "vehicleId": "VEHICLE_ID",
+    "startDate": "2025-12-25",
+    "endDate": "2025-12-27",
+    "pickupLocation": {
+      "address": "Mumbai Airport",
+      "city": "Mumbai",
+      "state": "Maharashtra"
+    }
+  }'
 ```
 
 ---
 
-## 🛠 Technology Stack
+## 📊 Sample Data Overview
+
+The populated database includes realistic Indian fleet management data:
+
+### Vehicles
+
+- **Sedans**: Maruti Swift Dzire, Honda City
+- **SUVs**: Hyundai Creta, Toyota Innova Crysta, Mahindra Scorpio N
+- **Electric**: Tata Nexon EV
+- **Luxury**: Mercedes-Benz E-Class
+- **Van**: Force Traveller
+
+### Locations Covered
+
+- **Mumbai**: Airport, Gateway of India, Bandra, Lonavala
+- **Delhi**: IGI Airport, Connaught Place, Taj Mahal (Agra)
+- **Bangalore**: Airport, Koramangala, Mysore, Ooty, Coorg
+- **Chennai**: Airport, Marina Beach, Mahabalipuram
+- **Other Cities**: Ahmedabad, Hyderabad, Kolkata, Jaipur
+
+### Booking Scenarios
+
+- Pending bookings for future dates
+- Confirmed bookings with payment
+- In-progress trips currently running
+- Completed trips with ratings and feedback
+- Cancelled bookings with refunds
+
+---
+
+## � Sample Data Overview
+
+The populated database includes realistic Indian fleet management data:
+
+### Vehicles
+
+- **Sedans**: Maruti Swift Dzire, Honda City
+- **SUVs**: Hyundai Creta, Toyota Innova Crysta, Mahindra Scorpio N
+- **Electric**: Tata Nexon EV
+- **Luxury**: Mercedes-Benz E-Class
+- **Van**: Force Traveller
+
+### Locations Covered
+
+- **Mumbai**: Airport, Gateway of India, Bandra, Lonavala
+- **Delhi**: IGI Airport, Connaught Place, Taj Mahal (Agra)
+- **Bangalore**: Airport, Koramangala, Mysore, Ooty, Coorg
+- **Chennai**: Airport, Marina Beach, Mahabalipuram
+- **Other Cities**: Ahmedabad, Hyderabad, Kolkata, Jaipur
+
+### Booking Scenarios
+
+- Pending bookings for future dates
+- Confirmed bookings with payment
+- In-progress trips currently running
+- Completed trips with ratings and feedback
+- Cancelled bookings with refunds
+
+### User Distribution
+
+- **13 Total Users**: 1 Admin, 2 Owners, 4 Drivers, 6 Customers
+- **All passwords**: `password123`
+- **Indian names and addresses** for realistic testing
+- **Multiple user types** to test all workflows
+
+---
+
+## 🗄️ Database Schema
+
+### User Model
+
+```javascript
+{
+  name: String,
+  email: String (unique),
+  password: String (hashed),
+  role: "customer" | "driver" | "owner" | "admin",
+  phone: String,
+  address: {
+    street, city, state, zipCode, country
+  },
+  licenseNumber: String (for drivers),
+  licenseExpiry: Date (for drivers)
+}
+```
+
+### Vehicle Model
+
+```javascript
+{
+  owner: ObjectId (ref: User),
+  make: String,
+  model: String,
+  year: Number,
+  registrationNumber: String (unique),
+  vehicleType: "sedan" | "suv" | "van" | "luxury" | "electric",
+  capacity: { passengers, luggage },
+  features: Array,
+  fuelType: "petrol" | "diesel" | "electric" | "hybrid" | "cng",
+  pricePerDay: Number,
+  pricePerHour: Number,
+  location: { address, city, state },
+  availability: "available" | "unavailable",
+  status: "active" | "maintenance" | "inactive"
+}
+```
+
+### Booking Model
+
+```javascript
+{
+  customer: ObjectId (ref: User),
+  vehicle: ObjectId (ref: Vehicle),
+  bookingType: "hourly" | "daily" | "weekly" | "monthly",
+  startDate: Date,
+  endDate: Date,
+  pickupLocation: { address, city, state, zipCode },
+  dropoffLocation: { address, city, state, zipCode },
+  pricing: {
+    basePrice: Number,
+    taxes: Number,
+    discount: Number,
+    totalPrice: Number
+  },
+  status: "pending" | "confirmed" | "cancelled" | "completed" | "in_progress",
+  paymentStatus: "pending" | "paid" | "refunded" | "failed"
+}
+```
+
+### Trip Model
+
+```javascript
+{
+  booking: ObjectId (ref: Booking),
+  customer: ObjectId (ref: User),
+  driver: ObjectId (ref: User),
+  vehicle: ObjectId (ref: Vehicle),
+  status: "scheduled" | "in_progress" | "completed" | "cancelled",
+  startedAt: Date,
+  completedAt: Date,
+  distance: { planned, actual },
+  odometerStart: Number,
+  odometerEnd: Number,
+  fuelLevel: { start, end },
+  revenue: Number,
+  expenses: { fuel, tolls, parking, other },
+  rating: { customer, driver },
+  feedback: { customer, driver }
+}
+```
+
+### Driver Assignment Model
+
+```javascript
+{
+  driver: ObjectId (ref: User),
+  vehicle: ObjectId (ref: Vehicle),
+  status: "pending" | "approved" | "rejected" | "active" | "inactive",
+  assignedDate: Date,
+  approvedBy: ObjectId (ref: User),
+  approvedDate: Date,
+  notes: String
+}
+```
+
+---
+
+## �🛠 Technology Stack
 
 ### Backend
 
@@ -370,11 +561,11 @@ aws s3api put-bucket-website --bucket fleet-admin-portal --website-configuration
 
 ```bash
 cd backend
-# Clear all data and repopulate
-node scripts/clearDatabase.js
-node scripts/createTestUsers.js
+# Clear all data and repopulate with fresh Indian data
 node scripts/populateDummyData.js
 ```
+
+> **Note**: The populate script automatically clears existing data before inserting new data, so you don't need a separate clear script.
 
 ### Environment Variables
 
