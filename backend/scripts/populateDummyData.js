@@ -21,7 +21,9 @@ mongoose.connect(
 
 async function populateDummyData() {
   try {
-    console.log("🔄 Populating dummy data with Indian names and locations...\n");
+    console.log(
+      "🔄 Populating dummy data with Indian names and locations...\n"
+    );
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
@@ -821,7 +823,7 @@ async function populateDummyData() {
         odometerEnd: 10160 + i * 1000 + i * 50,
         fuelLevel: {
           start: 100,
-          end: 25 + (i * 10) % 50,
+          end: 25 + ((i * 10) % 50),
         },
         revenue: booking.totalAmount * 0.85,
         expenses: {
