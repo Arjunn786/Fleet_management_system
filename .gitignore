@@ -1,0 +1,41 @@
+# Node
+node_modules/
+.env
+*.log
+dist/
+build/
+.next/
+coverage/
+.DS_Store
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# OS
+Thumbs.db
+.DS_Store
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+# Docker
+*.pid
+# Misc
+*.local
+.env.*
+.envrc
+# Test
+*.test.js
+*.test.ts
+*.test.tsx
+# Output
+out/
+# Mac
+.DS_Store
+# Others
+*.tgz
+*.bak
+*.tmp

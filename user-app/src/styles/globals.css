@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 active:scale-95;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-primary text-white hover:shadow-lg hover:shadow-primary-500/50;
+  }
+
+  .btn-secondary {
+    @apply bg-gradient-secondary text-white hover:shadow-lg hover:shadow-secondary-500/50;
+  }
+
+  .btn-success {
+    @apply bg-gradient-success text-white hover:shadow-lg hover:shadow-green-500/50;
+  }
+
+  .btn-outline {
+    @apply border-2 border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-white;
+  }
+
+  .card {
+    @apply bg-white dark:bg-dark-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-dark-700;
+  }
+
+  .card-hover {
+    @apply card transform hover:-translate-y-1;
+  }
+
+  .input {
+    @apply w-full px-4 py-3 rounded-lg bg-white dark:bg-dark-800 border border-gray-300 dark:border-dark-600 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-primary;
+  }
+
+  .gradient-border {
+    @apply relative before:absolute before:inset-0 before:-z-10 before:rounded-xl before:bg-gradient-primary before:p-[2px];
+  }
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-dark-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary-500 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary-600;
+}

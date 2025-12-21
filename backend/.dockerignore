@@ -1,0 +1,35 @@
+# Dependencies
+
+node_modules
+package-lock.json
+
+# Environment variables
+
+.env
+
+# Logs
+
+logs
+\*.log
+
+# OS files
+
+.DS_Store
+
+# Build files
+
+dist
+build
+
+# Redis
+
+dump.rdb
+
+# Git
+
+.git
+.gitignore
+
+# Documentation
+
+README.md

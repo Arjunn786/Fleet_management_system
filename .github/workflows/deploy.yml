@@ -1,0 +1,160 @@
+name: Deploy Fleet Management System
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: fleet-management-backend
+  ECS_CLUSTER: fleet-management-cluster
+  ECS_SERVICE: backend-service
+  USER_APP_BUCKET: fleet-management-user-app
+  ADMIN_PORTAL_BUCKET: fleet-management-admin-portal
+
+jobs:
+  deploy-backend:
+    name: Deploy Backend to ECS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          cd backend
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Update ECS service
+        run: |
+          aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_SERVICE }} \
+            --force-new-deployment
+
+  deploy-user-app:
+    name: Deploy User App to S3
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: user-app/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd user-app
+          npm ci
+
+      - name: Build Next.js app
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+        run: |
+          cd user-app
+          npm run build:static
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy to S3
+        run: |
+          cd user-app
+          aws s3 sync out/ s3://${{ env.USER_APP_BUCKET }} --delete --cache-control "public, max-age=31536000, immutable"
+
+      - name: Invalidate CloudFront (optional)
+        if: ${{ secrets.USER_APP_DISTRIBUTION_ID != '' }}
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.USER_APP_DISTRIBUTION_ID }} \
+            --paths "/*"
+
+  deploy-admin-portal:
+    name: Deploy Admin Portal to S3
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: admin-portal/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd admin-portal
+          npm ci
+
+      - name: Build Vite app
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+        run: |
+          cd admin-portal
+          npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy to S3
+        run: |
+          cd admin-portal
+          aws s3 sync dist/ s3://${{ env.ADMIN_PORTAL_BUCKET }} --delete --cache-control "public, max-age=31536000, immutable"
+
+      - name: Invalidate CloudFront (optional)
+        if: ${{ secrets.ADMIN_PORTAL_DISTRIBUTION_ID != '' }}
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.ADMIN_PORTAL_DISTRIBUTION_ID }} \
+            --paths "/*"
+
+  notify:
+    name: Send Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-user-app, deploy-admin-portal]
+    if: always()
+
+    steps:
+      - name: Notify deployment status
+        run: |
+          echo "Deployment completed!"
+          echo "Backend: ${{ needs.deploy-backend.result }}"
+          echo "User App: ${{ needs.deploy-user-app.result }}"
+          echo "Admin Portal: ${{ needs.deploy-admin-portal.result }}"
