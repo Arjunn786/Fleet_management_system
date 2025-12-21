@@ -1,7 +1,14 @@
-// Populate dummy data for testing UI
+// Populate dummy data for testing UI with Indian names and locations
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 require("dotenv").config();
+
+// Import actual models
+const User = require("../src/models/User");
+const Vehicle = require("../src/models/Vehicle");
+const Booking = require("../src/models/Booking");
+const Trip = require("../src/models/Trip");
+const DriverAssignment = require("../src/models/DriverAssignment");
 
 // Connect to MongoDB
 mongoose.connect(
@@ -12,294 +19,383 @@ mongoose.connect(
   }
 );
 
-// Define schemas
-const userSchema = new mongoose.Schema(
-  {
-    name: String,
-    email: String,
-    password: String,
-    role: String,
-    phone: String,
-    address: Object,
-    licenseNumber: String,
-    licenseExpiry: Date,
-    isActive: Boolean,
-    isDeleted: Boolean,
-  },
-  { timestamps: true }
-);
-
-const vehicleSchema = new mongoose.Schema(
-  {
-    owner: mongoose.Schema.Types.ObjectId,
-    make: String,
-    model: String,
-    year: Number,
-    registrationNumber: String,
-    vehicleType: String,
-    capacity: Object,
-    features: [String],
-    fuelType: String,
-    mileage: Number,
-    pricePerDay: Number,
-    pricePerHour: Number,
-    location: String,
-    availability: String,
-    status: String,
-    isDeleted: Boolean,
-  },
-  { timestamps: true }
-);
-
-const bookingSchema = new mongoose.Schema(
-  {
-    customer: mongoose.Schema.Types.ObjectId,
-    vehicle: mongoose.Schema.Types.ObjectId,
-    startDate: Date,
-    endDate: Date,
-    totalDays: Number,
-    totalAmount: Number,
-    pickupLocation: String,
-    dropoffLocation: String,
-    status: String,
-    isDeleted: Boolean,
-  },
-  { timestamps: true }
-);
-
-const tripSchema = new mongoose.Schema(
-  {
-    booking: mongoose.Schema.Types.ObjectId,
-    customer: mongoose.Schema.Types.ObjectId,
-    driver: mongoose.Schema.Types.ObjectId,
-    vehicle: mongoose.Schema.Types.ObjectId,
-    destination: String,
-    startTime: Date,
-    endTime: Date,
-    distance: Number,
-    duration: Number,
-    revenue: Number,
-    status: String,
-    rating: Number,
-    comment: String,
-    completedAt: Date,
-    isDeleted: Boolean,
-  },
-  { timestamps: true }
-);
-
-const User = mongoose.model("User", userSchema);
-const Vehicle = mongoose.model("Vehicle", vehicleSchema);
-const Booking = mongoose.model("Booking", bookingSchema);
-const Trip = mongoose.model("Trip", tripSchema);
-
 async function populateDummyData() {
   try {
-    console.log("🔄 Populating dummy data...\n");
+    console.log("🔄 Populating dummy data with Indian names and locations...\n");
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash("password123", salt);
 
-    // Clear existing data (but keep the test users from createTestUsers.js)
+    // Clear existing data
+    await User.deleteMany({});
     await Vehicle.deleteMany({});
     await Booking.deleteMany({});
     await Trip.deleteMany({});
+    await DriverAssignment.deleteMany({});
     console.log("✅ Existing data cleared");
 
-    // Create additional users if they don't exist
-    const additionalUsers = [
+    // Create Admin
+    const admin = await User.create({
+      name: "Rajesh Kumar",
+      email: "admin@fleet.com",
+      password: hashedPassword,
+      role: "admin",
+      phone: "9876543210",
+      address: {
+        street: "MG Road",
+        city: "Mumbai",
+        state: "Maharashtra",
+        zipCode: "400001",
+        country: "India",
+      },
+      isActive: true,
+    });
+    console.log("✅ Created admin user");
+
+    // Create Owners
+    const owners = await User.insertMany([
       {
-        name: "Alice Johnson",
-        email: "alice@example.com",
+        name: "Priya Sharma",
+        email: "owner1@fleet.com",
         password: hashedPassword,
-        role: "customer",
-        phone: "5551234567",
+        role: "owner",
+        phone: "9876543211",
         address: {
-          street: "123 Oak St",
-          city: "Boston",
-          state: "MA",
-          zipCode: "02101",
+          street: "Koramangala",
+          city: "Bangalore",
+          state: "Karnataka",
+          zipCode: "560034",
+          country: "India",
         },
         isActive: true,
-        isDeleted: false,
       },
       {
-        name: "Bob Smith",
-        email: "bob@example.com",
+        name: "Amit Patel",
+        email: "owner2@fleet.com",
         password: hashedPassword,
-        role: "customer",
-        phone: "5552345678",
+        role: "owner",
+        phone: "9876543212",
         address: {
-          street: "456 Pine Ave",
-          city: "Seattle",
-          state: "WA",
-          zipCode: "98101",
+          street: "Satellite Road",
+          city: "Ahmedabad",
+          state: "Gujarat",
+          zipCode: "380015",
+          country: "India",
         },
         isActive: true,
-        isDeleted: false,
       },
+    ]);
+    console.log(`✅ Created ${owners.length} owner users`);
+
+    // Create Drivers
+    const drivers = await User.insertMany([
       {
-        name: "Carol White",
-        email: "carol@example.com",
-        password: hashedPassword,
-        role: "customer",
-        phone: "5553456789",
-        address: {
-          street: "789 Maple Dr",
-          city: "Austin",
-          state: "TX",
-          zipCode: "73301",
-        },
-        isActive: true,
-        isDeleted: false,
-      },
-      {
-        name: "David Driver",
-        email: "david@example.com",
+        name: "Ramesh Singh",
+        email: "driver1@fleet.com",
         password: hashedPassword,
         role: "driver",
-        phone: "5554567890",
+        phone: "9876543213",
         address: {
-          street: "321 Elm St",
-          city: "Miami",
-          state: "FL",
-          zipCode: "33101",
+          street: "Andheri West",
+          city: "Mumbai",
+          state: "Maharashtra",
+          zipCode: "400053",
+          country: "India",
         },
-        licenseNumber: "DL987654321",
+        licenseNumber: "MH0120230001",
         licenseExpiry: new Date("2027-12-31"),
         isActive: true,
-        isDeleted: false,
       },
       {
-        name: "Emma Brown",
-        email: "emma@example.com",
+        name: "Suresh Reddy",
+        email: "driver2@fleet.com",
         password: hashedPassword,
         role: "driver",
-        phone: "5555678901",
+        phone: "9876543214",
         address: {
-          street: "654 Birch Ln",
-          city: "Denver",
-          state: "CO",
-          zipCode: "80201",
+          street: "Banjara Hills",
+          city: "Hyderabad",
+          state: "Telangana",
+          zipCode: "500034",
+          country: "India",
         },
-        licenseNumber: "DL456789123",
+        licenseNumber: "TS0920230002",
         licenseExpiry: new Date("2028-06-30"),
         isActive: true,
-        isDeleted: false,
       },
-    ];
+      {
+        name: "Vijay Kumar",
+        email: "driver3@fleet.com",
+        password: hashedPassword,
+        role: "driver",
+        phone: "9876543215",
+        address: {
+          street: "Indiranagar",
+          city: "Bangalore",
+          state: "Karnataka",
+          zipCode: "560038",
+          country: "India",
+        },
+        licenseNumber: "KA0520230003",
+        licenseExpiry: new Date("2029-03-15"),
+        isActive: true,
+      },
+      {
+        name: "Mahesh Joshi",
+        email: "driver4@fleet.com",
+        password: hashedPassword,
+        role: "driver",
+        phone: "9876543216",
+        address: {
+          street: "Vaishali Nagar",
+          city: "Jaipur",
+          state: "Rajasthan",
+          zipCode: "302021",
+          country: "India",
+        },
+        licenseNumber: "RJ1420230004",
+        licenseExpiry: new Date("2027-09-20"),
+        isActive: true,
+      },
+    ]);
+    console.log(`✅ Created ${drivers.length} driver users`);
 
-    // Insert only users that don't exist
-    for (const userData of additionalUsers) {
-      const existingUser = await User.findOne({ email: userData.email });
-      if (!existingUser) {
-        await User.create(userData);
-        console.log(`✅ Created user: ${userData.email}`);
-      } else {
-        console.log(`ℹ️  User already exists: ${userData.email}`);
-      }
-    }
+    // Create Customers
+    const customers = await User.insertMany([
+      {
+        name: "Aditya Verma",
+        email: "customer1@fleet.com",
+        password: hashedPassword,
+        role: "customer",
+        phone: "9876543217",
+        address: {
+          street: "Connaught Place",
+          city: "New Delhi",
+          state: "Delhi",
+          zipCode: "110001",
+          country: "India",
+        },
+        isActive: true,
+      },
+      {
+        name: "Sneha Desai",
+        email: "customer2@fleet.com",
+        password: hashedPassword,
+        role: "customer",
+        phone: "9876543218",
+        address: {
+          street: "Nariman Point",
+          city: "Mumbai",
+          state: "Maharashtra",
+          zipCode: "400021",
+          country: "India",
+        },
+        isActive: true,
+      },
+      {
+        name: "Rohan Mehta",
+        email: "customer3@fleet.com",
+        password: hashedPassword,
+        role: "customer",
+        phone: "9876543219",
+        address: {
+          street: "Salt Lake",
+          city: "Kolkata",
+          state: "West Bengal",
+          zipCode: "700064",
+          country: "India",
+        },
+        isActive: true,
+      },
+      {
+        name: "Anjali Iyer",
+        email: "customer4@fleet.com",
+        password: hashedPassword,
+        role: "customer",
+        phone: "9876543220",
+        address: {
+          street: "T Nagar",
+          city: "Chennai",
+          state: "Tamil Nadu",
+          zipCode: "600017",
+          country: "India",
+        },
+        isActive: true,
+      },
+      {
+        name: "Karthik Krishnan",
+        email: "customer5@fleet.com",
+        password: hashedPassword,
+        role: "customer",
+        phone: "9876543221",
+        address: {
+          street: "Whitefield",
+          city: "Bangalore",
+          state: "Karnataka",
+          zipCode: "560066",
+          country: "India",
+        },
+        isActive: true,
+      },
+      {
+        name: "Neha Gupta",
+        email: "customer6@fleet.com",
+        password: hashedPassword,
+        role: "customer",
+        phone: "9876543222",
+        address: {
+          street: "Sector 18",
+          city: "Noida",
+          state: "Uttar Pradesh",
+          zipCode: "201301",
+          country: "India",
+        },
+        isActive: true,
+      },
+    ]);
+    console.log(`✅ Created ${customers.length} customer users`);
 
-    // Get users from database
-    const owner = await User.findOne({ email: "owner@fleet.com" });
-    const customers = await User.find({ role: "customer" });
-    const drivers = await User.find({ role: "driver" });
-
-    if (!owner) {
-      console.log(
-        "⚠️  Owner user not found. Please run createTestUsers.js first."
-      );
-      process.exit(1);
-    }
-
-    // Create vehicles
+    // Create vehicles with Indian registration numbers
     const vehicles = await Vehicle.insertMany([
       {
-        owner: owner._id,
-        make: "Toyota",
-        model: "Camry",
+        owner: owners[0]._id,
+        make: "Maruti Suzuki",
+        model: "Swift Dzire",
         year: 2023,
-        registrationNumber: "ABC1234",
+        registrationNumber: "MH02AB1234",
         vehicleType: "sedan",
-        capacity: { passengers: 5, luggage: 3 },
-        features: ["ac", "gps", "bluetooth", "cruise_control"],
+        capacity: { passengers: 5, luggage: 2 },
+        features: ["ac", "gps", "bluetooth", "audio"],
         fuelType: "petrol",
-        mileage: 15000,
-        pricePerDay: 50,
-        pricePerHour: 8,
-        location: "New York, NY",
+        mileage: 12000,
+        pricePerDay: 2500,
+        pricePerHour: 200,
+        images: [],
+        location: {
+          address: "Mumbai, Maharashtra",
+          city: "Mumbai",
+          state: "Maharashtra",
+        },
         availability: "available",
         status: "active",
-        isDeleted: false,
       },
       {
-        owner: owner._id,
-        make: "Honda",
-        model: "CR-V",
+        owner: owners[0]._id,
+        make: "Hyundai",
+        model: "Creta",
         year: 2024,
-        registrationNumber: "XYZ5678",
+        registrationNumber: "KA05CD5678",
+        vehicleType: "suv",
+        capacity: { passengers: 7, luggage: 4 },
+        features: ["ac", "gps", "bluetooth", "sunroof", "parking_camera"],
+        fuelType: "diesel",
+        mileage: 8000,
+        pricePerDay: 4500,
+        pricePerHour: 350,
+        images: [],
+        location: {
+          address: "Bangalore, Karnataka",
+          city: "Bangalore",
+          state: "Karnataka",
+        },
+        availability: "available",
+        status: "active",
+      },
+      {
+        owner: owners[1]._id,
+        make: "Toyota",
+        model: "Innova Crysta",
+        year: 2023,
+        registrationNumber: "DL03EF9012",
         vehicleType: "suv",
         capacity: { passengers: 7, luggage: 5 },
-        features: ["ac", "gps", "bluetooth", "sunroof", "parking_camera"],
-        fuelType: "hybrid",
-        mileage: 8000,
-        pricePerDay: 75,
-        pricePerHour: 12,
-        location: "Los Angeles, CA",
-        availability: "available",
-        status: "active",
-        isDeleted: false,
-      },
-      {
-        owner: owner._id,
-        make: "Ford",
-        model: "Transit",
-        year: 2022,
-        registrationNumber: "VAN9012",
-        vehicleType: "van",
-        capacity: { passengers: 12, luggage: 8 },
-        features: ["ac", "gps", "bluetooth"],
+        features: ["ac", "gps", "bluetooth", "cruise_control"],
         fuelType: "diesel",
-        mileage: 45000,
-        pricePerDay: 100,
-        pricePerHour: 15,
-        location: "Chicago, IL",
+        mileage: 25000,
+        pricePerDay: 5000,
+        pricePerHour: 400,
+        images: [],
+        location: {
+          address: "New Delhi, Delhi",
+          city: "New Delhi",
+          state: "Delhi",
+        },
         availability: "available",
         status: "active",
-        isDeleted: false,
       },
       {
-        owner: owner._id,
-        make: "Tesla",
-        model: "Model 3",
+        owner: owners[1]._id,
+        make: "Mahindra",
+        model: "Scorpio N",
         year: 2024,
-        registrationNumber: "EV3456",
+        registrationNumber: "GJ01GH3456",
+        vehicleType: "suv",
+        capacity: { passengers: 7, luggage: 4 },
+        features: ["ac", "gps", "bluetooth", "sunroof", "leather_seats"],
+        fuelType: "diesel",
+        mileage: 5000,
+        pricePerDay: 4000,
+        pricePerHour: 320,
+        images: [],
+        location: {
+          address: "Ahmedabad, Gujarat",
+          city: "Ahmedabad",
+          state: "Gujarat",
+        },
+        availability: "available",
+        status: "active",
+      },
+      {
+        owner: owners[0]._id,
+        make: "Honda",
+        model: "City",
+        year: 2023,
+        registrationNumber: "TN09IJ7890",
+        vehicleType: "sedan",
+        capacity: { passengers: 5, luggage: 2 },
+        features: ["ac", "gps", "bluetooth", "sunroof"],
+        fuelType: "petrol",
+        mileage: 15000,
+        pricePerDay: 3000,
+        pricePerHour: 250,
+        images: [],
+        location: {
+          address: "Chennai, Tamil Nadu",
+          city: "Chennai",
+          state: "Tamil Nadu",
+        },
+        availability: "available",
+        status: "active",
+      },
+      {
+        owner: owners[1]._id,
+        make: "Tata",
+        model: "Nexon EV",
+        year: 2024,
+        registrationNumber: "KA03KL4567",
         vehicleType: "electric",
         capacity: { passengers: 5, luggage: 2 },
-        features: [
-          "ac",
-          "gps",
-          "bluetooth",
-          "sunroof",
-          "parking_camera",
-          "wifi",
-        ],
+        features: ["ac", "gps", "bluetooth", "sunroof", "parking_camera"],
         fuelType: "electric",
-        mileage: 5000,
-        pricePerDay: 120,
-        pricePerHour: 18,
-        location: "San Francisco, CA",
+        mileage: 3000,
+        pricePerDay: 3500,
+        pricePerHour: 280,
+        images: [],
+        location: {
+          address: "Bangalore, Karnataka",
+          city: "Bangalore",
+          state: "Karnataka",
+        },
         availability: "available",
         status: "active",
-        isDeleted: false,
       },
       {
-        owner: owner._id,
-        make: "BMW",
-        model: "7 Series",
+        owner: owners[0]._id,
+        make: "Mercedes-Benz",
+        model: "E-Class",
         year: 2023,
-        registrationNumber: "LUX7890",
+        registrationNumber: "MH01MN2345",
         vehicleType: "luxury",
         capacity: { passengers: 5, luggage: 3 },
         features: [
@@ -313,151 +409,438 @@ async function populateDummyData() {
           "wifi",
         ],
         fuelType: "petrol",
-        mileage: 12000,
-        pricePerDay: 200,
-        pricePerHour: 30,
-        location: "Miami, FL",
-        availability: "unavailable",
-        status: "maintenance",
-        isDeleted: false,
-      },
-      {
-        owner: owner._id,
-        make: "Chevrolet",
-        model: "Silverado",
-        year: 2023,
-        registrationNumber: "TRK4567",
-        vehicleType: "truck",
-        capacity: { passengers: 5, luggage: 10 },
-        features: ["ac", "gps", "bluetooth", "parking_camera"],
-        fuelType: "diesel",
-        mileage: 25000,
-        pricePerDay: 90,
-        pricePerHour: 14,
-        location: "Houston, TX",
+        mileage: 10000,
+        pricePerDay: 12000,
+        pricePerHour: 1000,
+        images: [],
+        location: {
+          address: "Mumbai, Maharashtra",
+          city: "Mumbai",
+          state: "Maharashtra",
+        },
         availability: "available",
         status: "active",
-        isDeleted: false,
+      },
+      {
+        owner: owners[1]._id,
+        make: "Force",
+        model: "Traveller",
+        year: 2022,
+        registrationNumber: "RJ14OP6789",
+        vehicleType: "van",
+        capacity: { passengers: 12, luggage: 8 },
+        features: ["ac", "gps", "audio"],
+        fuelType: "diesel",
+        mileage: 45000,
+        pricePerDay: 6000,
+        pricePerHour: 500,
+        images: [],
+        location: {
+          address: "Jaipur, Rajasthan",
+          city: "Jaipur",
+          state: "Rajasthan",
+        },
+        availability: "unavailable",
+        status: "maintenance",
       },
     ]);
 
     console.log(`✅ Created ${vehicles.length} vehicles`);
 
-    // Create bookings
+    // Create driver assignments
+    const driverAssignments = await DriverAssignment.insertMany([
+      {
+        driver: drivers[0]._id,
+        vehicle: vehicles[0]._id,
+        status: "active",
+        assignedDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        approvedBy: owners[0]._id,
+        approvedDate: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000),
+        notes: "Experienced driver for sedan vehicles",
+      },
+      {
+        driver: drivers[1]._id,
+        vehicle: vehicles[1]._id,
+        status: "active",
+        assignedDate: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000),
+        approvedBy: owners[0]._id,
+        approvedDate: new Date(Date.now() - 24 * 24 * 60 * 60 * 1000),
+        notes: "Reliable driver for SUV trips",
+      },
+      {
+        driver: drivers[2]._id,
+        vehicle: vehicles[2]._id,
+        status: "active",
+        assignedDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
+        approvedBy: owners[1]._id,
+        approvedDate: new Date(Date.now() - 19 * 24 * 60 * 60 * 1000),
+        notes: "Experienced with Innova vehicles",
+      },
+      {
+        driver: drivers[3]._id,
+        vehicle: vehicles[7]._id,
+        status: "pending",
+        assignedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        notes: "New assignment pending approval",
+      },
+    ]);
+
+    console.log(`✅ Created ${driverAssignments.length} driver assignments`);
+
+    // Create bookings with Indian locations
     const now = new Date();
     const bookings = [];
 
-    // Pending booking
+    // Pending bookings
     bookings.push({
       customer: customers[0]._id,
       vehicle: vehicles[0]._id,
-      startDate: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
-      endDate: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
-      totalDays: 3,
-      totalAmount: 150,
-      pickupLocation: "JFK Airport",
-      dropoffLocation: "Manhattan Hotel",
+      bookingType: "daily",
+      startDate: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000),
+      endDate: new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000),
+      pickupLocation: {
+        address: "Chhatrapati Shivaji International Airport, Mumbai",
+        city: "Mumbai",
+        state: "Maharashtra",
+        zipCode: "400099",
+      },
+      dropoffLocation: {
+        address: "Gateway of India, Mumbai",
+        city: "Mumbai",
+        state: "Maharashtra",
+        zipCode: "400001",
+      },
+      pricing: {
+        basePrice: 7000,
+        taxes: 500,
+        discount: 0,
+        totalPrice: 7500,
+      },
+      paymentStatus: "pending",
       status: "pending",
-      isDeleted: false,
     });
 
-    // Confirmed booking
     bookings.push({
       customer: customers[1]._id,
-      vehicle: vehicles[1]._id,
-      startDate: new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000), // 1 day from now
-      endDate: new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000), // 4 days from now
-      totalDays: 3,
-      totalAmount: 225,
-      pickupLocation: "LAX Airport",
-      dropoffLocation: "Santa Monica Beach",
-      status: "confirmed",
-      isDeleted: false,
+      vehicle: vehicles[4]._id,
+      bookingType: "daily",
+      startDate: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000),
+      endDate: new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000),
+      pickupLocation: {
+        address: "Chennai International Airport",
+        city: "Chennai",
+        state: "Tamil Nadu",
+        zipCode: "600027",
+      },
+      dropoffLocation: {
+        address: "Marina Beach, Chennai",
+        city: "Chennai",
+        state: "Tamil Nadu",
+        zipCode: "600004",
+      },
+      pricing: {
+        basePrice: 5600,
+        taxes: 400,
+        discount: 0,
+        totalPrice: 6000,
+      },
+      paymentStatus: "pending",
+      status: "pending",
     });
 
-    // In progress booking
+    // Confirmed bookings
     bookings.push({
       customer: customers[2]._id,
+      vehicle: vehicles[1]._id,
+      bookingType: "daily",
+      startDate: new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000),
+      endDate: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000),
+      pickupLocation: {
+        address: "Kempegowda International Airport, Bangalore",
+        city: "Bangalore",
+        state: "Karnataka",
+        zipCode: "560300",
+      },
+      dropoffLocation: {
+        address: "Mysore Palace, Mysore",
+        city: "Mysore",
+        state: "Karnataka",
+        zipCode: "570001",
+      },
+      pricing: {
+        basePrice: 16500,
+        taxes: 1500,
+        discount: 0,
+        totalPrice: 18000,
+      },
+      paymentStatus: "paid",
+      status: "confirmed",
+    });
+
+    bookings.push({
+      customer: customers[3]._id,
       vehicle: vehicles[2]._id,
-      startDate: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-      endDate: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
-      totalDays: 3,
-      totalAmount: 300,
-      pickupLocation: "O'Hare Airport",
-      dropoffLocation: "Downtown Chicago",
+      bookingType: "daily",
+      startDate: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000),
+      endDate: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
+      pickupLocation: {
+        address: "Indira Gandhi International Airport, Delhi",
+        city: "New Delhi",
+        state: "Delhi",
+        zipCode: "110037",
+      },
+      dropoffLocation: {
+        address: "Taj Mahal, Agra",
+        city: "Agra",
+        state: "Uttar Pradesh",
+        zipCode: "282001",
+      },
+      pricing: {
+        basePrice: 23000,
+        taxes: 2000,
+        discount: 0,
+        totalPrice: 25000,
+      },
+      paymentStatus: "paid",
+      status: "confirmed",
+    });
+
+    // In progress bookings
+    bookings.push({
+      customer: customers[4]._id,
+      vehicle: vehicles[3]._id,
+      bookingType: "daily",
+      startDate: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
+      endDate: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000),
+      pickupLocation: {
+        address: "Ahmedabad Railway Station",
+        city: "Ahmedabad",
+        state: "Gujarat",
+        zipCode: "380002",
+      },
+      dropoffLocation: {
+        address: "Sabarmati Ashram, Ahmedabad",
+        city: "Ahmedabad",
+        state: "Gujarat",
+        zipCode: "380027",
+      },
+      pricing: {
+        basePrice: 11000,
+        taxes: 1000,
+        discount: 0,
+        totalPrice: 12000,
+      },
+      paymentStatus: "paid",
       status: "in_progress",
-      isDeleted: false,
     });
 
     // Completed bookings
-    for (let i = 0; i < 5; i++) {
+    const completedBookingsData = [
+      {
+        customer: customers[0]._id,
+        vehicle: vehicles[0]._id,
+        daysAgo: 10,
+        duration: 3,
+        pickup: "Mumbai Domestic Airport",
+        dropoff: "Lonavala, Maharashtra",
+        amount: 7500,
+        rating: 5,
+      },
+      {
+        customer: customers[1]._id,
+        vehicle: vehicles[1]._id,
+        daysAgo: 15,
+        duration: 4,
+        pickup: "Electronic City, Bangalore",
+        dropoff: "Coorg, Karnataka",
+        amount: 18000,
+        rating: 4,
+      },
+      {
+        customer: customers[2]._id,
+        vehicle: vehicles[2]._id,
+        daysAgo: 20,
+        duration: 5,
+        pickup: "Connaught Place, Delhi",
+        dropoff: "Jaipur, Rajasthan",
+        amount: 25000,
+        rating: 5,
+      },
+      {
+        customer: customers[3]._id,
+        vehicle: vehicles[4]._id,
+        daysAgo: 25,
+        duration: 2,
+        pickup: "T Nagar, Chennai",
+        dropoff: "Mahabalipuram, Tamil Nadu",
+        amount: 6000,
+        rating: 4,
+      },
+      {
+        customer: customers[4]._id,
+        vehicle: vehicles[5]._id,
+        daysAgo: 30,
+        duration: 3,
+        pickup: "Whitefield, Bangalore",
+        dropoff: "Ooty, Tamil Nadu",
+        amount: 10500,
+        rating: 5,
+      },
+      {
+        customer: customers[5]._id,
+        vehicle: vehicles[6]._id,
+        daysAgo: 35,
+        duration: 1,
+        pickup: "Bandra, Mumbai",
+        dropoff: "Pune, Maharashtra",
+        amount: 12000,
+        rating: 5,
+      },
+      {
+        customer: customers[0]._id,
+        vehicle: vehicles[3]._id,
+        daysAgo: 40,
+        duration: 4,
+        pickup: "Ahmedabad Airport",
+        dropoff: "Udaipur, Rajasthan",
+        amount: 16000,
+        rating: 4,
+      },
+      {
+        customer: customers[2]._id,
+        vehicle: vehicles[1]._id,
+        daysAgo: 45,
+        duration: 2,
+        pickup: "Salt Lake, Kolkata",
+        dropoff: "Digha, West Bengal",
+        amount: 9000,
+        rating: 4,
+      },
+    ];
+
+    for (const data of completedBookingsData) {
       bookings.push({
-        customer: customers[i % 3]._id,
-        vehicle: vehicles[i % 6]._id,
-        startDate: new Date(now.getTime() - (10 + i * 2) * 24 * 60 * 60 * 1000),
-        endDate: new Date(now.getTime() - (7 + i * 2) * 24 * 60 * 60 * 1000),
-        totalDays: 3,
-        totalAmount: 50 * (i + 2),
-        pickupLocation: "City Center",
-        dropoffLocation: "Airport",
+        customer: data.customer,
+        vehicle: data.vehicle,
+        bookingType: "daily",
+        startDate: new Date(now.getTime() - data.daysAgo * 24 * 60 * 60 * 1000),
+        endDate: new Date(
+          now.getTime() - (data.daysAgo - data.duration) * 24 * 60 * 60 * 1000
+        ),
+        pickupLocation: {
+          address: data.pickup,
+          city: data.pickup.split(",")[0],
+          state: "India",
+        },
+        dropoffLocation: {
+          address: data.dropoff,
+          city: data.dropoff.split(",")[0],
+          state: "India",
+        },
+        pricing: {
+          basePrice: Math.floor(data.amount * 0.92),
+          taxes: Math.floor(data.amount * 0.08),
+          discount: 0,
+          totalPrice: data.amount,
+        },
+        paymentStatus: "paid",
         status: "completed",
-        isDeleted: false,
       });
     }
 
-    // Cancelled booking
+    // Cancelled bookings
     bookings.push({
-      customer: customers[0]._id,
-      vehicle: vehicles[3]._id,
+      customer: customers[1]._id,
+      vehicle: vehicles[6]._id,
+      bookingType: "daily",
       startDate: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
       endDate: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
-      totalDays: 3,
-      totalAmount: 360,
-      pickupLocation: "SFO Airport",
-      dropoffLocation: "Silicon Valley",
+      pickupLocation: {
+        address: "Juhu Beach, Mumbai",
+        city: "Mumbai",
+        state: "Maharashtra",
+        zipCode: "400049",
+      },
+      dropoffLocation: {
+        address: "Lonavala, Maharashtra",
+        city: "Lonavala",
+        state: "Maharashtra",
+        zipCode: "410401",
+      },
+      pricing: {
+        basePrice: 33000,
+        taxes: 3000,
+        discount: 0,
+        totalPrice: 36000,
+      },
+      paymentStatus: "refunded",
       status: "cancelled",
-      isDeleted: false,
+      cancellationReason: "Change in travel plans",
     });
 
     const createdBookings = await Booking.insertMany(bookings);
     console.log(`✅ Created ${createdBookings.length} bookings`);
 
-    // Create trips for completed bookings
+    // Create trips for completed and in-progress bookings
+    const trips = [];
+
+    // Completed trips
     const completedBookings = createdBookings.filter(
       (b) => b.status === "completed"
     );
-    const trips = [];
+
+    const tripComments = [
+      "Excellent service! Very professional driver.",
+      "Smooth ride and comfortable journey.",
+      "Driver was very helpful and courteous.",
+      "Great experience, will book again!",
+      "Vehicle was clean and well-maintained.",
+      "Punctual pickup and safe driving.",
+      "Very satisfied with the service.",
+      "Comfortable trip with good music system.",
+    ];
 
     for (let i = 0; i < completedBookings.length; i++) {
       const booking = completedBookings[i];
-      const driver = drivers[i % 2];
+      const driver = drivers[i % drivers.length];
+      const rating = completedBookingsData[i]?.rating || 4;
 
       trips.push({
         booking: booking._id,
         customer: booking.customer,
         driver: driver._id,
         vehicle: booking.vehicle,
-        destination: booking.dropoffLocation,
-        startTime: booking.startDate,
-        endTime: booking.endDate,
-        distance: 50 + i * 20,
-        duration: 2 + i * 0.5,
-        revenue: booking.totalAmount * 0.8, // 80% of booking amount
         status: "completed",
-        rating: 4 + Math.random(),
-        comment: [
-          "Great service!",
-          "Very professional driver",
-          "Smooth ride",
-          "Excellent experience",
-          "Would book again",
-        ][i % 5],
+        startedAt: booking.startDate,
         completedAt: booking.endDate,
-        isDeleted: false,
+        distance: {
+          planned: 150 + i * 50,
+          actual: 160 + i * 50,
+        },
+        odometerStart: 10000 + i * 1000,
+        odometerEnd: 10160 + i * 1000 + i * 50,
+        fuelLevel: {
+          start: 100,
+          end: 25 + (i * 10) % 50,
+        },
+        revenue: booking.totalAmount * 0.85,
+        expenses: {
+          fuel: 500 + i * 200,
+          tolls: 200 + i * 100,
+          parking: 100,
+          other: 0,
+        },
+        rating: {
+          customer: rating,
+          driver: rating === 5 ? 5 : 4,
+        },
+        feedback: {
+          customer: tripComments[i % tripComments.length],
+        },
       });
     }
 
-    // Add an in-progress trip
+    // In-progress trip
     const inProgressBooking = createdBookings.find(
       (b) => b.status === "in_progress"
     );
@@ -467,53 +850,81 @@ async function populateDummyData() {
         customer: inProgressBooking.customer,
         driver: drivers[0]._id,
         vehicle: inProgressBooking.vehicle,
-        destination: inProgressBooking.dropoffLocation,
-        startTime: inProgressBooking.startDate,
-        endTime: null,
-        distance: 75,
-        duration: 3.5,
-        revenue: inProgressBooking.totalAmount * 0.8,
         status: "in_progress",
-        isDeleted: false,
+        startedAt: inProgressBooking.startDate,
+        distance: {
+          planned: 180,
+          actual: 95,
+        },
+        odometerStart: 25000,
+        odometerEnd: 25095,
+        fuelLevel: {
+          start: 100,
+          end: 65,
+        },
+        revenue: 0,
+        expenses: {
+          fuel: 0,
+          tolls: 0,
+          parking: 0,
+          other: 0,
+        },
       });
     }
 
-    // Add scheduled trips
-    const confirmedBooking = createdBookings.find(
+    // Scheduled trips for confirmed bookings
+    const confirmedBookings = createdBookings.filter(
       (b) => b.status === "confirmed"
     );
-    if (confirmedBooking) {
+    for (let i = 0; i < confirmedBookings.length; i++) {
+      const booking = confirmedBookings[i];
+      const driver = drivers[(i + 1) % drivers.length];
+
       trips.push({
-        booking: confirmedBooking._id,
-        customer: confirmedBooking.customer,
-        driver: drivers[1]._id,
-        vehicle: confirmedBooking.vehicle,
-        destination: confirmedBooking.dropoffLocation,
-        startTime: confirmedBooking.startDate,
-        endTime: null,
-        distance: 0,
-        duration: 0,
-        revenue: 0,
+        booking: booking._id,
+        customer: booking.customer,
+        driver: driver._id,
+        vehicle: booking.vehicle,
         status: "scheduled",
-        isDeleted: false,
+        distance: {
+          planned: 200 + i * 50,
+          actual: 0,
+        },
+        revenue: 0,
+        expenses: {
+          fuel: 0,
+          tolls: 0,
+          parking: 0,
+          other: 0,
+        },
       });
     }
 
     const createdTrips = await Trip.insertMany(trips);
     console.log(`✅ Created ${createdTrips.length} trips`);
 
-    console.log("\n✅ Dummy data populated successfully!\n");
+    console.log("\n✅ Dummy data populated successfully with Indian names!\n");
     console.log("📊 Summary:");
-    console.log(`   - ${customers.length} additional customers`);
-    console.log(`   - ${drivers.length} additional drivers`);
+    console.log(`   - 1 admin user`);
+    console.log(`   - ${owners.length} vehicle owners`);
+    console.log(`   - ${drivers.length} drivers`);
+    console.log(`   - ${customers.length} customers`);
     console.log(`   - ${vehicles.length} vehicles`);
+    console.log(`   - ${driverAssignments.length} driver assignments`);
     console.log(`   - ${createdBookings.length} bookings`);
     console.log(`   - ${createdTrips.length} trips\n`);
+    console.log("🔐 Login credentials:");
+    console.log("   Admin: admin@fleet.com / password123");
+    console.log("   Owner: owner1@fleet.com / password123");
+    console.log("   Driver: driver1@fleet.com / password123");
+    console.log("   Customer: customer1@fleet.com / password123\n");
 
     mongoose.connection.close();
     process.exit(0);
   } catch (error) {
     console.error("❌ Error populating dummy data:", error);
+    console.error(error.stack);
+    mongoose.connection.close();
     process.exit(1);
   }
 }
