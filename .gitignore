@@ -28,6 +28,9 @@ secrets/
 docker-credentials.txt
 .docker/
 
+# Shell scripts (contain automation and potentially sensitive operations)
+scripts/*.sh
+
 # Logs
 logs/
 *.log

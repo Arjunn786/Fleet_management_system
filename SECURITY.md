@@ -93,7 +93,7 @@ Navigate to: `https://github.com/YOUR_USERNAME/YOUR_REPO/settings/secrets/action
 Add these secrets:
 ```
 DOCKER_HUB_USERNAME=arjun6111
-DOCKER_HUB_ACCESS_TOKEN=dckr_pat_...
+DOCKER_HUB_ACCESS_TOKEN=dckr_pat_your_token_here
 AWS_ACCESS_KEY_ID=your_aws_key
 AWS_SECRET_ACCESS_KEY=your_aws_secret
 ```
