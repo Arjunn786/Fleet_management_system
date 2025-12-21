@@ -7,34 +7,62 @@ build/
 .next/
 coverage/
 .DS_Store
+
+# Environment files (IMPORTANT: Keep these secure)
+.env
+.env.local
+.env.production
+.env.development
+.env.*.local
+backend/.env
+admin-portal/.env.local
+user-app/.env.local
+
+# Sensitive configuration
+config/production.js
+secrets/
+*.pem
+*.key
+
+# Docker secrets and credentials
+docker-credentials.txt
+.docker/
+
 # Logs
 logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
 # OS
 Thumbs.db
 .DS_Store
+
 # Editor
 .vscode/
 .idea/
 *.swp
 *.swo
+
 # Docker
 *.pid
+
 # Misc
 *.local
-.env.*
 .envrc
+
 # Test
 *.test.js
 *.test.ts
 *.test.tsx
+
 # Output
 out/
+
 # Mac
 .DS_Store
+
 # Others
 *.tgz
 *.bak
