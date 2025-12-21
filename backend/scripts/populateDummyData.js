@@ -25,7 +25,8 @@ async function populateDummyData() {
       "🔄 Populating dummy data with Indian names and locations...\n"
     );
 
-    // Hash password
+    // NOTE: Don't hash password here - the User model's pre-save hook will hash it
+    // But for insertMany, we need to hash it ourselves since it bypasses middleware
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash("password123", salt);
 
@@ -37,11 +38,11 @@ async function populateDummyData() {
     await DriverAssignment.deleteMany({});
     console.log("✅ Existing data cleared");
 
-    // Create Admin
+    // Create Admin using create() - it will hash the plain password via pre-save hook
     const admin = await User.create({
       name: "Rajesh Kumar",
       email: "admin@fleet.com",
-      password: hashedPassword,
+      password: "password123", // Plain text - will be hashed by pre-save hook
       role: "admin",
       phone: "9876543210",
       address: {
